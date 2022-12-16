@@ -48,7 +48,9 @@ class dbghelp:
                         ('object', ctypes.c_void_p)]
 
                 data = ctypes.cast(callbackData, ctypes.POINTER(CBA_EVENT_DATA))
-                message = data[0].desc.replace("\b", "").strip()
+                message1 = str(data[0].desc)
+                message2 = message1.replace("\b", "")
+                message = message2.strip()
                 logger.info("dllEvent {}>({}) {}".format(self._uniqueProcessHandle, data[0].code, message))
                 return 1
             elif actionCode == 0x07:
@@ -82,7 +84,7 @@ class dbghelp:
         self.SymSetOptions(symoptions)
 
         # Initialize the symbol system
-        success = self.SymInitialize(self._uniqueProcessHandle, ctypes.c_char_p(self._sympath), ctypes.c_bool(False))
+        success = self.SymInitialize(self._uniqueProcessHandle, ctypes.c_char_p(self._sympath.encode('utf-8')), ctypes.c_bool(False))
         if (success == False):
             raise ctypes.WinError()
 
@@ -179,7 +181,7 @@ class dbghelp:
 
         fileLocation = ctypes.create_string_buffer(b'\000' * 1024)
         flags = self.SSRVOPT_DWORD
-        result = self.SymFindFileInPath(self._uniqueProcessHandle, self._sympath, name, id1, id2, 0, flags, fileLocation, None, None)
+        result = self.SymFindFileInPath(self._uniqueProcessHandle, self._sympath.encode('utf-8'), name.encode('utf-8'), id1, id2, 0, flags, fileLocation, None, None)
         if (not result):
             raise ctypes.WinError()
 
@@ -194,7 +196,7 @@ class dbghelp:
 
         fileLocation = ctypes.create_string_buffer(b'\000' * 1024)
         flags = self.SSRVOPT_GUIDPTR
-        result = self.SymFindFileInPath_pdb(self._uniqueProcessHandle, self._sympath, name, ctypes.byref(id1), id2, 0,
+        result = self.SymFindFileInPath_pdb(self._uniqueProcessHandle, self._sympath.encode('utf-8'), name.encode('utf-8'), ctypes.byref(id1), id2, 0,
                                         flags, fileLocation, None, None)
 
         # if the search reports unsuccessful, it is possible it still
